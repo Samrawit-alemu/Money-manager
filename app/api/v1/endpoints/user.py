@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse 
 from app.services.user_service import UserService
 from app.db.mongodb import get_database
 from bson import ObjectId
@@ -21,3 +21,12 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
         email=new_user["email"],
         created_at=new_user["created_at"]
     )
+@router.post("/login", response_model=TokenResponse)
+async def login(user: UserLogin, db=Depends(get_database)):
+    service = UserService(db)
+    access_token = await service.login_user(
+        email=user.email,
+        password=user.password
+    )
+
+    return TokenResponse(access_token=access_token)
