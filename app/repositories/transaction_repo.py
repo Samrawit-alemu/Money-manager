@@ -18,3 +18,22 @@ class TransactionRepository:
         async for doc in cursor:
             transactions.append(doc)
         return transactions
+    
+    async def get_balance_aggregation(self, user_id: str):
+        pipeline = [
+            {"$match": {"user_id": ObjectId(user_id)}},
+            {
+                "$group": {
+                    "_id": "$type",
+                    "total": {"$sum": "$amount"}
+                }
+            }
+        ]
+        cursor = self.collection.aggregate(pipeline)
+        result = {"income": 0, "expense": 0}
+
+        async for doc in cursor:
+            result[doc["_id"]] = doc["total"]
+
+        result["balance"] = result["income"] - result["expense"]
+        return result

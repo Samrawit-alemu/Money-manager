@@ -52,3 +52,14 @@ async def get_my_transactions(
         }
         for t in transactions
     ]
+
+@router.get("/summary")
+async def get_summary(
+    current_user=Depends(get_current_user),
+    db=Depends(get_database)
+):
+    service = TransactionService(db)
+
+    return await service.calculate_balance(
+        user_id=str(current_user["_id"])
+    )
