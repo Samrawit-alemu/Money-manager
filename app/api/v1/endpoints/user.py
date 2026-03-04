@@ -3,6 +3,8 @@ from app.schemas.user import UserCreate, UserResponse, UserLogin, TokenResponse
 from app.services.user_service import UserService
 from app.db.mongodb import get_database
 from bson import ObjectId
+from app.core.dependencies import get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
 
@@ -21,12 +23,28 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
         email=new_user["email"],
         created_at=new_user["created_at"]
     )
-@router.post("/login", response_model=TokenResponse)
-async def login(user: UserLogin, db=Depends(get_database)):
+@router.post("/login")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db=Depends(get_database)
+    ):
+
     service = UserService(db)
+
     access_token = await service.login_user(
-        email=user.email,
-        password=user.password
+        email=form_data.username,
+        password=form_data.password
     )
 
-    return TokenResponse(access_token=access_token)
+    return{
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+@router.get("/me")
+async def get_me(current_user=Depends(get_current_user)):
+    return {
+        "id": str(current_user["_id"]),
+        "name": current_user["name"],
+        "email": current_user["email"]
+    }
