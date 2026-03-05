@@ -17,5 +17,5 @@ class TransactionService:
         return await self.repo.get_by_user(user_id)
     
 
-    async def calculate_balance(self, user_id: str):
-        return await self.repo.get_balance_aggregation(user_id)
+    async def calculate_balance(self, user_id: str, month: int | None = None, year: int | None = None):
+        return await self.repo.get_balance_aggregation(user_id, month, year) # type: ignore

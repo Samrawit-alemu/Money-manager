@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from app.schemas.transaction import TransactionCreate, TransactionResponse
 from app.services.transaction_service import TransactionService
 from app.core.dependencies import get_current_user
@@ -55,11 +55,17 @@ async def get_my_transactions(
 
 @router.get("/summary")
 async def get_summary(
+    month: int | None = Query(None, ge=1, le=12),
+    year: int | None = Query(None, ge=2000, le=2100),
     current_user=Depends(get_current_user),
     db=Depends(get_database)
 ):
     service = TransactionService(db)
 
-    return await service.calculate_balance(
-        user_id=str(current_user["_id"])
+    summary = await service.calculate_balance(
+        user_id=str(current_user["_id"]),
+        month=month, # type: ignore
+        year=year # type: ignore
     )
+
+    return summary
