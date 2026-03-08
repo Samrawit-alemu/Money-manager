@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Query
 from app.schemas.transaction import TransactionCreate, TransactionResponse
 from app.services.transaction_service import TransactionService
@@ -48,7 +50,7 @@ async def get_my_transactions(
             "type": t["type"],
             "category": t["category"],
             "description": t.get("description"),
-            "created_at": t["created_at"]
+            "created_at": t.get("created_at", datetime.utcnow())
         }
         for t in transactions
     ]

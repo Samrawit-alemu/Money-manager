@@ -14,6 +14,7 @@ class TransactionCreate(BaseModel):
     type: TransactionType
     category: str
     description: Optional[str] = None
+    created_at: Optional[datetime] = None
 
 
 class TransactionResponse(BaseModel):
