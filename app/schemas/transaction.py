@@ -24,3 +24,9 @@ class TransactionResponse(BaseModel):
     category: str
     description: Optional[str]
     created_at: datetime
+
+class TransactionUpdate(BaseModel):
+    amount: Optional[float] = Field(None, gt=0)
+    type: Optional[TransactionType] = None
+    category: Optional[str] = None
+    description: Optional[str] = None

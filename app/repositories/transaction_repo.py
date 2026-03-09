@@ -1,4 +1,5 @@
 from bson import ObjectId
+from pymongo import ReturnDocument
 
 
 class TransactionRepository:
@@ -77,3 +78,25 @@ class TransactionRepository:
         result["balance"] = result["income"] - result["expense"]
 
         return result
+
+    async def update_transaction(self, transaction_id: str, user_id: str, update_data: dict):
+        """
+        Update a transaction by its ID
+        """
+        result = await self.collection.find_one_and_update(
+            {"_id": ObjectId(transaction_id), "user_id": ObjectId(user_id)},
+            {"$set": update_data},
+            return_document=ReturnDocument.AFTER
+        )
+
+        return result
+    
+    async def delete_transaction(self, transaction_id: str, user_id: str) -> bool:
+        """
+        Delete a transaction by its ID
+        """
+        result = await self.collection.delete_one({"_id": ObjectId(transaction_id), "user_id": ObjectId(user_id)})
+
+        return result.deleted_count > 0
+        
+    

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query
-from app.schemas.transaction import TransactionCreate, TransactionResponse
+from fastapi import APIRouter, Depends, Query, HTTPException
+from app.schemas.transaction import TransactionCreate, TransactionResponse, TransactionUpdate
 from app.services.transaction_service import TransactionService
 from app.core.dependencies import get_current_user
 from app.db.mongodb import get_database
@@ -71,3 +71,43 @@ async def get_summary(
     )
 
     return summary
+
+@router.patch("/{transaction_id}", response_model=TransactionResponse)
+async def update_transaction(
+    transaction_id: str,
+    update_data: TransactionUpdate,
+    current_user=Depends(get_current_user),
+    db=Depends(get_database)
+):
+    service = TransactionService(db)
+
+    clean_data = update_data.model_dump(exclude_unset=True)
+
+    if not clean_data:
+        raise HTTPException(status_code=400, detail="No update data provided") # type: ignore
+
+    updated_item = await service.update_transaction(
+        transaction_id=transaction_id,
+        user_id=str(current_user["_id"]), 
+        update_data=clean_data
+    )
+    
+
+    return {
+        "id": str(updated_item["_id"]),
+        "amount": updated_item["amount"],
+        "type": updated_item["type"],
+        "category": updated_item["category"],
+        "description": updated_item.get("description"),
+        "created_at": updated_item["created_at"]
+    }
+
+@router.delete("/{transaction_id}")
+async def delete_transaction(
+    transaction_id: str,
+    current_user=Depends(get_current_user),
+    db=Depends(get_database)
+):
+    service = TransactionService(db)
+
+    return await service.delete_transaction(transaction_id=transaction_id, user_id=str(current_user["_id"]))
